@@ -155,12 +155,12 @@ Respond with ONLY the plain text content, without any explanation or formatting.
 
 
 
-polygons = [
-    [(731, 313), (727, 67), (916, 62), (920, 311), (867, 311)],
-    [(930, 590), (840, 497), (718, 574), (813, 581)],
-    [(837, 916), (894, 772), (903, 772), (751, 775)]
-]
+# polygons = [
+#     [(731, 313), (727, 67), (916, 62), (920, 311), (867, 311)],
+#     [(930, 590), (840, 497), (718, 574), (813, 581)],
+#     [(837, 916), (894, 772), (903, 772), (751, 775)]
+# ]
 
-texts = extract_texts_from_polygons("C:/Users/athar/OneDrive/Desktop/Project/edi-flow/img/img7.jpg", polygons)
-print(texts) 
+# texts = extract_texts_from_polygons("C:/Users/athar/OneDrive/Desktop/Project/edi-flow/img/img7.jpg", polygons)
+# print(texts) 
 
