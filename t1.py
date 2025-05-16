@@ -38,7 +38,7 @@ output = image.copy()
 for (x, y) in merged_corners:
     cv2.circle(output, (x, y), 5, (0, 0, 255), -1)
 
-_, binary_image = cv2.threshold(diluted_black, 127, 255, cv2.THRESH_BINARY)
+_, binary_image = cv2.threshold(diluted_black, 128, 255, cv2.THRESH_BINARY)
 inverted = cv2.bitwise_not(binary_image)
 
 # Mask corner points
@@ -63,7 +63,7 @@ def detect_lines_and_circles(image):
 
         for cnt in contours:
             area = cv2.contourArea(cnt)
-            if area < 30:
+            if area < 100:
                 continue
 
             rect = cv2.minAreaRect(cnt)
@@ -156,7 +156,7 @@ def dfs(point, line, visited, polygonList):
         # visited.add(currLine)
 
         # Find closest points within threshold
-        closest_points_and_lines = find_closest_points(currPoint, currLine, 60)
+        closest_points_and_lines = find_closest_points(currPoint, currLine, 50)
 
         # elem = [point, line]
         for elem in closest_points_and_lines:
@@ -193,6 +193,37 @@ def dfs(point, line, visited, polygonList):
 
 white_image = output.copy()
 white_image[:] = 255
+
+def is_black_pixel(img, x, y):
+    h, w = img.shape[:2]
+    if 0 <= x < w and 0 <= y < h:
+        return all(img[y, x] == [0, 0, 0])
+    return False
+
+def extend_line_to_polygon(pt1, pt2, img, max_extension=200):
+    def dda_extend(p1, p2, direction):
+        x, y = p1
+        dx = p2[0] - p1[0]
+        dy = p2[1] - p1[1]
+        steps = int(max(abs(dx), abs(dy)))
+        if steps == 0: return p1
+        x_inc = dx / steps
+        y_inc = dy / steps
+
+        x_new = x
+        y_new = y
+
+        for _ in range(max_extension):
+            x_new += direction * x_inc
+            y_new += direction * y_inc
+            if is_black_pixel(img, int(round(x_new)), int(round(y_new))):
+                return (int(round(x_new)), int(round(y_new)))
+        return (int(round(x_new)), int(round(y_new)))
+
+    # Extend both directions
+    ext_start = dda_extend(pt1, pt2, -1)
+    ext_end = dda_extend(pt2, pt1, -1)
+    return ext_start, ext_end
 
 
 
@@ -273,15 +304,12 @@ def draw_polygons_from_lines(image):
     print("connectionLines")
     print(connectionLines)
 
-    # for line in connectionLines:
-    #     pt1, pt2 = line
-    #     extended_pt1, extended_pt2 = extend_line_to_polygon(pt1, pt2, white_image)
+    for line in connectionLines:
+        pt1, pt2 = line
+        extended_pt1, extended_pt2 = extend_line_to_polygon(pt1, pt2, white_image)
 
-    #     print(f"Extended Line: {extended_pt1} -> {extended_pt2}")
-    #     cv2.line(white_image, extended_pt1, extended_pt2, (128, 128, 128), 2)  # Gray
-
-
-        
+        print(f"Extended Line: {extended_pt1} -> {extended_pt2}")
+        cv2.line(white_image, extended_pt1, extended_pt2, (0, 0, 0), 2)  # Gray
 
 draw_polygons_from_lines(output)
 
