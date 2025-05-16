@@ -34,12 +34,14 @@ print(f"Corners found:  {len(merged_corners)}")
 
 output = image.copy()
 
+# Plot corner points
 for (x, y) in merged_corners:
     cv2.circle(output, (x, y), 5, (0, 0, 255), -1)
 
 _, binary_image = cv2.threshold(diluted_black, 127, 255, cv2.THRESH_BINARY)
 inverted = cv2.bitwise_not(binary_image)
 
+# Mask corner points
 for (x, y) in merged_corners:
     cv2.circle(inverted, (x, y), radius=20, color=0, thickness=-1)
 
@@ -151,20 +153,23 @@ def dfs(point, line, visited, polygonList):
         visitedStack.append((currPoint, currLine))
         visited.add(currLine)
 
+
+        # Find closest points within threshold
         closest_points_and_lines = find_closest_points(currPoint, currLine, 50)
 
+        # elem = [point, line]
         for elem in closest_points_and_lines:
             elem_tuple = tuple(elem)
             if elem_tuple not in visited:
                 flag = 1
-                other_pt = ()
+                opp_pt = ()
                 for pt in elem[1]:
                     if pt != elem[0]:
                         stack.append((pt, elem[1]))
                         visited.add(elem[1])
-                        other_pt = pt
+                        opp_pt = pt
 
-                if (other_pt, elem[1]) in visitedStack :
+                if (opp_pt, elem[1]) in visitedStack :
                     currentTrace = [] 
                     while visitedStack:
                         _, top = visitedStack.pop()
@@ -179,6 +184,9 @@ def dfs(point, line, visited, polygonList):
         if flag != 1:
             visitedStack.pop()
 
+white_image = output.copy()
+white_image[:] = 255
+
 def draw_polygons_from_lines(image):
     visited = set()
     polygonList = []
@@ -188,6 +196,12 @@ def draw_polygons_from_lines(image):
     for line in cleaned_endpoints:
         if line not in visited:
             dfs(line[0], line, visited, polygonList)
+            # stack
+            # stack.push(list[0])
+            # while stack not empty
+            # loop: stack.pop
+            # neighbors
+            # push each neighbor
 
     print(len(polygonList))
     polygonsVertexList = []
@@ -200,7 +214,20 @@ def draw_polygons_from_lines(image):
             line1 = polygon[i]
             line2 = polygon[(i + 1) % len(polygon)]
 
-            print(line1)
+            denom1 = line1[1][0] - line1[0][0]
+            denom2 = line2[1][0] - line2[0][0]
+            max_val = 999999
+            if(denom1) == 0:
+                denom1 = max_val
+            if(denom2 == 0):
+                denom2 = max_val
+
+            slope1 = (line1[1][1] - line1[0][1]) / (denom1)
+            slope2 = (line2[1][1] - line2[0][1]) / (denom2)
+
+            if (abs(slope1 - slope2) < 0.2):
+                continue
+
             px, py = line_intersection(line1[0], line1[1], line2[0], line2[1])
             cv2.circle(output, (px, py), 10, (255, 0, 0), -1)
             singlePolygonVertexList.append((px, py))
@@ -209,10 +236,17 @@ def draw_polygons_from_lines(image):
 
         print(polygonsVertexList)
 
-        for line in polygon:
-            for pt in line:
-                if pt not in points:
-                    points.append(pt)
+        for polygon in polygonsVertexList:
+            for i in range(0, len(polygon)):
+                pt1 = polygon[i]
+                pt2 = polygon[(i + 1) % len(polygon)]
+
+                cv2.line(white_image, pt1, pt2, (0, 0, 0), 2)
+
+        # for line in polygon:
+        #     for pt in line:
+        #         if pt not in points:
+        #             points.append(pt)
                     # print(pt)
                     # cv2.circle(output, (pt[0], pt[1]), 10, (255, 0, 0), -1)
 
@@ -221,8 +255,10 @@ draw_polygons_from_lines(output)
 resized_image = cv2.resize(output, None, fx=0.5, fy=0.5)
 resized_inverted = cv2.resize(inverted, None, fx=0.5, fy=0.5)
 resized_lines = cv2.resize(lines_img, None, fx=0.5, fy=0.5)
+resized_white = cv2.resize(white_image, None, fx=0.5, fy=0.5)
 
-cv2.imshow("lines", resized_lines)
+cv2.imshow("white", resized_white)
+cv2.imshow("lines", lines_img)
 cv2.imshow("processed", resized_image)
 cv2.imshow("inverted", resized_inverted)
 cv2.waitKey(0)
