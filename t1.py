@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from scipy.spatial import KDTree
 
-image = cv2.imread("img/test5.jpg")  
+image = cv2.imread("C:/Users/athar/OneDrive/Desktop/Project/edi-flow/img/img7.jpg")  
 blur = cv2.GaussianBlur(image, (7, 7), 1)
 gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY)
 inverted = cv2.bitwise_not(gray)
@@ -236,7 +236,7 @@ def draw_polygons_from_lines(image):
     for line in cleaned_endpoints:
         if line not in visited:
             dfs(line[1], line, visited, polygonList)
-            dfs(line[0], line, visited, polygonList)
+            # dfs(line[0], line, visited, polygonList)
             for polygon in polygonList:
                 for line in polygon:
                     visited.add(line)
@@ -272,16 +272,16 @@ def draw_polygons_from_lines(image):
             slope1 = (line1[1][1] - line1[0][1]) / (denom1)
             slope2 = (line2[1][1] - line2[0][1]) / (denom2)
 
-            if (abs(slope1 - slope2) < 0.2):
-                continue
+            # if (abs(slope1 - slope2) < 0.2):
+            #     continue
 
             px, py = line_intersection(line1[0], line1[1], line2[0], line2[1])
             cv2.circle(output, (px, py), 10, (255, 0, 0), -1)
             singlePolygonVertexList.append((px, py))
 
         polygonsVertexList.append(singlePolygonVertexList.copy())
-
-        # print(polygonsVertexList)
+    print("from here -------------------- \n\n\n")
+    print(polygonsVertexList)
 
     for polygon in polygonsVertexList:
         for i in range(0, len(polygon)):
